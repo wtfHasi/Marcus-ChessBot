@@ -6,17 +6,14 @@ from app.stockfish import set_position, get_best_move
 # FastAPI app initialization
 app = FastAPI()
 
-# Add CORSMiddleware here
+# Add CORS middleware here
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["http://localhost:5173"],  # Allow frontend URL (e.g., Vite)
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-    expose_headers=["*"],  # Expose headers if needed
-    allow_origin_regex='http://localhost:.*',  # Allow any port on localhost
+    allow_methods=["*"],  # Allow all HTTP methods like GET, POST, OPTIONS
+    allow_headers=["*"],  # Allow all headers
 )
-
 
 # Define your routes below
 class MoveRequest(BaseModel):
@@ -28,3 +25,4 @@ async def make_move(request: MoveRequest):
     set_position(user_move)  # Call your backend logic
     bot_move = get_best_move()  # Get the bot's move
     return {"bot_move": bot_move}
+
