@@ -1,44 +1,84 @@
-import React, { useState } from "react";
-import { Chess } from "chess.js"; // Import chess.js
+import React, { useState, useEffect } from "react";
+import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
-import { makeMove } from "../api/api"; // Import the API function
+import { makeMove } from "../api/api";
 
 const ChessBoard = () => {
   const [game, setGame] = useState(new Chess());
-  const [fen, setFen] = useState("start"); // Initial FEN position
+  const [fen, setFen] = useState(game.fen());
+  const [botColor, setBotColor] = useState("b"); // Track bot color (Black by default)
+  const [gameOver, setGameOver] = useState(false); // Track game over state
+
+  useEffect(() => {
+    if (game.isGameOver()) {
+      setGameOver(true);
+      console.log("Game Over");
+      alert("Game Over! The game has ended.");
+    }
+  }, [game]); // Re-run on game state change
 
   const onPieceDrop = async (sourceSquare, targetSquare) => {
-    const move = game.move({
-      from: sourceSquare,
-      to: targetSquare,
-      promotion: "q", // Promote to queen
-    });
-
-    if (!move) return false; // Invalid move
-
-    setFen(game.fen()); // Update the board position
-
-    try {
-      // Send the user's move to the backend and get the bot's move
-      const data = await makeMove(move.san);
-
-      // Apply the bot's move
-      game.move(data.bot_move);
-      setFen(game.fen());
-    } catch (error) {
-      console.error("Failed to make a move:", error);
-      alert("An error occurred. Please try again.");
+    if (gameOver) {
+      console.log("Game Over! Cannot make a move.");
+      return false;
     }
-
-    return true; // Valid move
+  
+    console.log("Attempting move:", sourceSquare + targetSquare);
+    console.log("Current turn:", game.turn());
+  
+    if (game.turn() === "w") {
+      const move = game.move({
+        from: sourceSquare,
+        to: targetSquare,
+        promotion: "q", // Automatically promote to queen
+      });
+  
+      if (!move) {
+        console.error(`Invalid move: ${sourceSquare} to ${targetSquare}`);
+        return false;
+      }
+  
+      console.log("Move made:", move);
+  
+      // Construct the LAN format to send to the backend
+      const lanMove = `${move.from}${move.to}${move.promotion ? move.promotion : ''}`;
+      setFen(game.fen());
+  
+      try {
+        const data = await makeMove(lanMove, game.fen()); // Send move in LAN format
+        console.log("Bot's move:", data.bot_move);
+  
+        if (game.turn() === "b") {
+          const botMove = game.move(data.bot_move);
+          if (botMove) {
+            setFen(game.fen());
+          } else {
+            console.error(`Invalid bot move: ${data.bot_move}`);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to make a move:", error);
+        alert("An error occurred. Please try again.");
+      }
+    } else {
+      console.log("It's not White's turn yet.");
+    }
+  
+    if (game.isGameOver()) {
+      setGameOver(true);
+      alert("Game Over! The game has ended.");
+    }
+  
+    return true;
   };
+  
 
   return (
     <div>
       <h1>Chess Bot</h1>
       <Chessboard
         position={fen}
-        onPieceDrop={onPieceDrop} // Corrected prop name
+        onPieceDrop={onPieceDrop} // Correct prop name
         boardWidth={600}
       />
     </div>
@@ -46,5 +86,3 @@ const ChessBoard = () => {
 };
 
 export default ChessBoard;
-
-
