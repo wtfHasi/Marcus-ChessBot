@@ -1,21 +1,26 @@
-# main.py
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from app.stockfish import set_position, get_best_move
 
-
 app = FastAPI()
 
-# Create a chess move request model
+# Add CORS middleware before defining routes
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  # Replace with your frontend URL
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all HTTP methods
+    allow_headers=["*"],  # Allow all headers
+)
+
 class MoveRequest(BaseModel):
     move: str
 
-# Endpoint to get the bot's move
 @app.post("/make_move/")
 async def make_move(request: MoveRequest):
     user_move = request.move
-    set_position(user_move)  # Use the function from stockfish.py
-    bot_move = get_best_move()  # Use the function from stockfish.py
+    set_position(user_move)
+    bot_move = get_best_move()
     return {"bot_move": bot_move}
-
 
