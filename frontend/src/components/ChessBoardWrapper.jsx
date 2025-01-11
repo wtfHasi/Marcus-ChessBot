@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { Chess } from "chess.js";
-import { Chessboard } from "react-chessboard";
+import ColorSelection from "./ColorSelection";
+import GameBoard from "./GameBoard";
+import GameControls from "./GameControls";
 import { makeMove, resetGame } from "../api/api";
 
-const ChessBoard = () => {
+const ChessBoardWrapper = () => {
   const [game, setGame] = useState(new Chess());
   const [fen, setFen] = useState(game.fen());
   const [playerColor, setPlayerColor] = useState(localStorage.getItem("playerColor") || null);
   const [botColor, setBotColor] = useState(localStorage.getItem("botColor") || null);
   const [gameOver, setGameOver] = useState(false);
-  const [gameStarted, setGameStarted] = useState(!!localStorage.getItem("playerColor")); // Check if game already started
+  const [gameStarted, setGameStarted] = useState(!!localStorage.getItem("playerColor"));
 
-  // Load the saved FEN from localStorage on component mount
+  // Load saved FEN on mount
   useEffect(() => {
     const storedFEN = localStorage.getItem("currentFEN");
     if (storedFEN) {
@@ -20,7 +22,7 @@ const ChessBoard = () => {
     }
   }, [game]);
 
-  // Handle game over
+  // Game over handling
   useEffect(() => {
     if (game.isGameOver()) {
       setGameOver(true);
@@ -28,7 +30,7 @@ const ChessBoard = () => {
     }
   }, [game]);
 
-  // Save player and bot colors in localStorage when selected
+  // Save player/bot colors
   useEffect(() => {
     if (playerColor && botColor) {
       localStorage.setItem("playerColor", playerColor);
@@ -43,19 +45,21 @@ const ChessBoard = () => {
     setGameStarted(true);
 
     if (color === "b") {
-      // Bot plays the first move
-      await handleBotMove();
+      await handleBotMove(); // Bot plays first
     }
   };
 
   // Handle bot's move
   const handleBotMove = async () => {
     try {
-      const data = await makeMove(""); // Fetch bot's move from backend
+      const data = await makeMove("");
+      console.log("Bot's move:", data.bot_move);
+      console.log("Updated FEN after bot's move:", data.updated_fen);
+
       const botMove = game.move(data.bot_move);
       if (botMove) {
-        setFen(game.fen());
-        localStorage.setItem("currentFEN", game.fen());
+        setFen(data.updated_fen);
+        localStorage.setItem("currentFEN", data.updated_fen);
       } else {
         console.error(`Invalid bot move: ${data.bot_move}`);
       }
@@ -71,7 +75,6 @@ const ChessBoard = () => {
       return false;
     }
 
-    // Prevent moves if it's not the player's turn
     if (game.turn() !== playerColor) {
       console.log("It's not your turn yet.");
       return false;
@@ -80,7 +83,7 @@ const ChessBoard = () => {
     const move = game.move({
       from: sourceSquare,
       to: targetSquare,
-      promotion: "q", // Promote to queen if applicable
+      promotion: "q",
     });
 
     if (!move) {
@@ -105,7 +108,6 @@ const ChessBoard = () => {
       }
     } catch (error) {
       console.error("Failed to make a move:", error);
-      alert("An error occurred. Please try again.");
     }
 
     if (game.isGameOver()) {
@@ -119,54 +121,38 @@ const ChessBoard = () => {
   // Restart the game
   const restartGame = async () => {
     try {
-      const response = await resetGame(); // Call the reset API
+      const response = await resetGame();
       if (response.status === "success") {
-        const newGame = new Chess(); // Reset frontend game state
+        const newGame = new Chess();
         setGame(newGame);
         setFen(newGame.fen());
-        localStorage.removeItem("currentFEN"); // Clear saved FEN
-        localStorage.removeItem("playerColor"); // Clear player color
-        localStorage.removeItem("botColor"); // Clear bot color
+        localStorage.clear();
         setPlayerColor(null);
         setBotColor(null);
         setGameStarted(false);
         setGameOver(false);
-        console.log("Game restarted successfully. Backend reset to:", response.starting_fen);
+        console.log("Game restarted successfully.");
       } else {
         console.error("Failed to reset game:", response.message);
-        alert("An error occurred while resetting the game.");
       }
     } catch (error) {
       console.error("Error resetting the game:", error);
-      alert("An error occurred. Please try again.");
     }
   };
 
   return (
     <div>
       {!gameStarted ? (
-        <div>
-          <h1>Choose Your Color</h1>
-          <select onChange={(e) => handleColorSelection(e.target.value)}>
-            <option value="">Select a Color</option>
-            <option value="w">White</option>
-            <option value="b">Black</option>
-          </select>
-        </div>
+        <ColorSelection onSelectColor={handleColorSelection} />
       ) : (
         <div>
-          <h1>Marcus</h1>
-          <button onClick={restartGame}>Restart</button>
-          <Chessboard
-            position={fen}
-            onPieceDrop={onPieceDrop}
-            boardOrientation={playerColor === "w" ? "white" : "black"} // Adjust board orientation
-            boardWidth={600}
-          />
+          <h1>Chess Game</h1>
+          <GameControls onRestart={restartGame} />
+          <GameBoard fen={fen} onPieceDrop={onPieceDrop} playerColor={playerColor} />
         </div>
       )}
     </div>
   );
 };
 
-export default ChessBoard;
+export default ChessBoardWrapper;

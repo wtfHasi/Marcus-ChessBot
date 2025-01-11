@@ -1,5 +1,5 @@
 import React from "react";
-import ChessBoard from "./components/ChessBoard";
+import ChessBoard from "./components/ChessBoardWrapper";
 
 const App = () => {
   return (
