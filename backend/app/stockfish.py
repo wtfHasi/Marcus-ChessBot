@@ -5,27 +5,24 @@ stockfish = Stockfish(path="D:/stockfish/stockfish-windows-x86-64-avx2.exe")  # 
 
 # Function to set the position of the board (after each move)
 def set_position(move):
-    # Get the current FEN position before applying the move
+    # Get the current FEN position
     current_position = stockfish.get_fen_position()
-    
-    # Log the current FEN to check if it reflects the correct turn and position
     print(f"Setting position. Current FEN: {current_position}")
-    
-    # Log the move that is being set
     print(f"Applying move: {move}")
     
     try:
-        # Set the new position with the move
-        stockfish.set_position([move])
+        # Apply the move from the current position
+        stockfish.make_moves_from_current_position([move])
         
         # Get the new FEN after applying the move
         new_position = stockfish.get_fen_position()
         print(f"Position after move '{move}': {new_position}")
         
-        return new_position  # Return new FEN after move
+        return new_position  # Return the updated FEN
     except Exception as e:
         print(f"Error setting position: {e}")
-        return current_position  # Return original FEN if there’s an error
+        return current_position  # Return the original FEN if there's an error
+
 
 
 # Function to get the best move from Stockfish

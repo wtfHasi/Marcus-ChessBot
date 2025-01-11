@@ -9,6 +9,15 @@ const ChessBoard = () => {
   const [botColor, setBotColor] = useState("b"); // Track bot color (Black by default)
   const [gameOver, setGameOver] = useState(false); // Track game over state
 
+  // Load the saved FEN from localStorage on component mount
+  useEffect(() => {
+    const storedFEN = localStorage.getItem("currentFEN");
+    if (storedFEN) {
+      game.load(storedFEN);
+      setFen(storedFEN);
+    }
+  }, [game]);
+
   useEffect(() => {
     if (game.isGameOver()) {
       setGameOver(true);
@@ -40,18 +49,19 @@ const ChessBoard = () => {
   
       console.log("Move made:", move);
   
-      // Construct the LAN format to send to the backend
       const lanMove = `${move.from}${move.to}${move.promotion ? move.promotion : ''}`;
       setFen(game.fen());
+      localStorage.setItem("currentFEN", game.fen()); // Save the current FEN to localStorage
   
       try {
-        const data = await makeMove(lanMove, game.fen()); // Send move in LAN format
+        const data = await makeMove(lanMove, game.fen());
         console.log("Bot's move:", data.bot_move);
   
         if (game.turn() === "b") {
           const botMove = game.move(data.bot_move);
           if (botMove) {
             setFen(game.fen());
+            localStorage.setItem("currentFEN", game.fen());
           } else {
             console.error(`Invalid bot move: ${data.bot_move}`);
           }
@@ -71,14 +81,24 @@ const ChessBoard = () => {
   
     return true;
   };
-  
 
+  // Function to restart the game
+  const restartGame = () => {
+    const newGame = new Chess();
+    setGame(newGame);
+    setFen(newGame.fen());
+    localStorage.removeItem("currentFEN"); // Clear saved FEN
+    setGameOver(false);
+    console.log("Game restarted");
+  };
+  
   return (
     <div>
       <h1>Chess Bot</h1>
+      <button onClick={restartGame}>Restart Game</button>
       <Chessboard
         position={fen}
-        onPieceDrop={onPieceDrop} // Correct prop name
+        onPieceDrop={onPieceDrop}
         boardWidth={600}
       />
     </div>
@@ -86,3 +106,4 @@ const ChessBoard = () => {
 };
 
 export default ChessBoard;
+
