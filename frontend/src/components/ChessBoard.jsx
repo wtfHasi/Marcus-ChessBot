@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
 import { makeMove, resetGame } from "../api/api";
+import "tailwindcss/tailwind.css"; // Ensure you have Tailwind CSS installed and configured
+import "./chessboard.css"; // Adjust the path based on your project structure
+
 
 const ChessBoard = () => {
   const [game, setGame] = useState(new Chess());
@@ -9,7 +12,7 @@ const ChessBoard = () => {
   const [playerColor, setPlayerColor] = useState(localStorage.getItem("playerColor") || null);
   const [botColor, setBotColor] = useState(localStorage.getItem("botColor") || null);
   const [gameOver, setGameOver] = useState(false);
-  const [gameStarted, setGameStarted] = useState(!!localStorage.getItem("playerColor")); // Check if game already started
+  const [gameStarted, setGameStarted] = useState(!!localStorage.getItem("playerColor"));
 
   // Load the saved FEN from localStorage on component mount
   useEffect(() => {
@@ -43,15 +46,25 @@ const ChessBoard = () => {
     setGameStarted(true);
 
     if (color === "b") {
-      // Bot plays the first move
-      await handleBotMove();
+      try {
+        const data = await makeMove("");
+        const botMove = game.move(data.bot_move);
+        if (botMove) {
+          setFen(game.fen());
+          localStorage.setItem("currentFEN", game.fen());
+        } else {
+          console.error(`Invalid bot move: ${data.bot_move}`);
+        }
+      } catch (error) {
+        console.error("Failed to get bot move:", error);
+      }
     }
   };
 
   // Handle bot's move
   const handleBotMove = async () => {
     try {
-      const data = await makeMove(""); // Fetch bot's move from backend
+      const data = await makeMove("");
       const botMove = game.move(data.bot_move);
       if (botMove) {
         setFen(game.fen());
@@ -71,7 +84,6 @@ const ChessBoard = () => {
       return false;
     }
 
-    // Prevent moves if it's not the player's turn
     if (game.turn() !== playerColor) {
       console.log("It's not your turn yet.");
       return false;
@@ -80,7 +92,7 @@ const ChessBoard = () => {
     const move = game.move({
       from: sourceSquare,
       to: targetSquare,
-      promotion: "q", // Promote to queen if applicable
+      promotion: "q",
     });
 
     if (!move) {
@@ -119,14 +131,14 @@ const ChessBoard = () => {
   // Restart the game
   const restartGame = async () => {
     try {
-      const response = await resetGame(); // Call the reset API
+      const response = await resetGame();
       if (response.status === "success") {
-        const newGame = new Chess(); // Reset frontend game state
+        const newGame = new Chess();
         setGame(newGame);
         setFen(newGame.fen());
-        localStorage.removeItem("currentFEN"); // Clear saved FEN
-        localStorage.removeItem("playerColor"); // Clear player color
-        localStorage.removeItem("botColor"); // Clear bot color
+        localStorage.removeItem("currentFEN");
+        localStorage.removeItem("playerColor");
+        localStorage.removeItem("botColor");
         setPlayerColor(null);
         setBotColor(null);
         setGameStarted(false);
@@ -143,28 +155,34 @@ const ChessBoard = () => {
   };
 
   return (
-    <div>
-      {!gameStarted ? (
-        <div>
-          <h1>Choose Your Color</h1>
-          <select onChange={(e) => handleColorSelection(e.target.value)}>
-            <option value="">Select a Color</option>
-            <option value="w">White</option>
-            <option value="b">Black</option>
-          </select>
-        </div>
-      ) : (
-        <div>
-          <h1>Marcus</h1>
-          <button onClick={restartGame}>Restart</button>
-          <Chessboard
-            position={fen}
-            onPieceDrop={onPieceDrop}
-            boardOrientation={playerColor === "w" ? "white" : "black"} // Adjust board orientation
-            boardWidth={600}
-          />
-        </div>
-      )}
+    <div className="app-container">
+      <div className="content">
+        {!gameStarted ? (
+          <div className="text-center">
+            <h1 className="heading">Choose Your Color</h1>
+            <select className="select" onChange={(e) => handleColorSelection(e.target.value)}>
+              <option value="">Select a Color</option>
+              <option value="w">White</option>
+              <option value="b">Black</option>
+            </select>
+          </div>
+        ) : (
+          <div className="text-center">
+            <h1 className="heading">Marcus</h1>
+            <button className="button" onClick={restartGame}>
+              Restart
+            </button>
+            <div className="chessboard-container">
+              <Chessboard
+                position={fen}
+                onPieceDrop={onPieceDrop}
+                boardOrientation={playerColor === "w" ? "white" : "black"}
+                boardWidth={400} // Keep the width manageable
+              />
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

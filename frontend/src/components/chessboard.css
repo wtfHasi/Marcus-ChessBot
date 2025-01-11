@@ -1,0 +1,81 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #1c1107;
+    margin: 0;
+    padding: 0;
+    color: #f0f0f0;
+  }
+  
+  .app-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    text-align: center;
+  }
+  
+  .content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .heading {
+    font-size: 3.5rem; /* Increased font size for a more prominent heading */
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #f0f0f0;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7); /* Adds a subtle text shadow */
+  }
+  
+  .select {
+    display: block;
+    margin: 20px auto;
+    padding: 10px 15px; /* Increased padding for better spacing */
+    font-size: 18px; /* Slightly larger font size */
+    border: 2px solid #9300d2; /* Add a more vibrant border */
+    border-radius: 8px; /* Softer corners */
+    background-color: #2e1e13; /* Darker background for contrast */
+    color: #f0f0f0;
+    cursor: pointer;
+    transition: all 0.3s ease; /* Smooth transition for hover effects */
+  }
+  
+  .select:hover {
+    background-color: #3e2d20; /* Slightly lighter background on hover */
+    border-color: #700095; /* Change border color on hover */
+  }
+  
+  .button {
+    display: block;
+    margin: 20px auto;
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    background-color: #9300d2;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .button:hover {
+    background-color: #700095;
+  }
+  
+  .chessboard-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+  }
+  
+  .chessboard-container .chessboard {
+    border: 2px solid #555;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    height: 400px;
+  }
+  
+  
+  
