@@ -5,6 +5,7 @@ const API = axios.create({
   timeout: 5000, // Set a timeout for requests
 });
 
+// Function to make a move
 export const makeMove = async (move) => {
   try {
     const response = await API.post("/make_move/", { move });
@@ -15,3 +16,13 @@ export const makeMove = async (move) => {
   }
 };
 
+// Function to reset the game
+export const resetGame = async () => {
+  try {
+    const response = await API.post("/reset_game/");
+    return response.data;
+  } catch (error) {
+    console.error("Error resetting the game:", error);
+    throw error; // Propagate the error for further handling
+  }
+};
