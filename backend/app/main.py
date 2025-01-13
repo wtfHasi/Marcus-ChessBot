@@ -9,7 +9,7 @@ app = FastAPI()
 # Add CORS middleware here
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5175"],  # Allow frontend URL (e.g., Vite)
+    allow_origins=["http://localhost:5173"],  # Allow frontend URL (e.g., Vite)
     allow_credentials=True,
     allow_methods=["*"],  # Allow all HTTP methods like GET, POST, OPTIONS
     allow_headers=["*"],  # Allow all headers

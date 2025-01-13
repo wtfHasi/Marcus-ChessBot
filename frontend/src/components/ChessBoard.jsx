@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Chess } from "chess.js";
-import { Chessboard } from "react-chessboard";
 import { makeMove, resetGame } from "../api/api";
+import ColorSelection from "./ColorSelection";
+import ChessGame from "./ChessGame";
 import "tailwindcss/tailwind.css"; // Ensure you have Tailwind CSS installed and configured
 import "./chessboard.css"; // Adjust the path based on your project structure
-
 
 const ChessBoard = () => {
   const [game, setGame] = useState(new Chess());
@@ -158,29 +158,14 @@ const ChessBoard = () => {
     <div className="app-container">
       <div className="content">
         {!gameStarted ? (
-          <div className="text-center">
-            <h1 className="heading">Choose Your Color</h1>
-            <select className="select" onChange={(e) => handleColorSelection(e.target.value)}>
-              <option value="">Select a Color</option>
-              <option value="w">White</option>
-              <option value="b">Black</option>
-            </select>
-          </div>
+          <ColorSelection handleColorSelection={handleColorSelection} />
         ) : (
-          <div className="text-center">
-            <h1 className="heading">Marcus</h1>
-            <button className="button" onClick={restartGame}>
-              Restart
-            </button>
-            <div className="chessboard-container">
-              <Chessboard
-                position={fen}
-                onPieceDrop={onPieceDrop}
-                boardOrientation={playerColor === "w" ? "white" : "black"}
-                boardWidth={400} // Keep the width manageable
-              />
-            </div>
-          </div>
+          <ChessGame
+            fen={fen}
+            onPieceDrop={onPieceDrop}
+            playerColor={playerColor}
+            restartGame={restartGame}
+          />
         )}
       </div>
     </div>
