@@ -1,0 +1,17 @@
+# Stockfish binaries
+stockfish.exe
+stockfish
+stockfish-*
+
+# Build files
+/src/*.o
+/src/*.obj
+/src/*.a
+/src/*.so
+/src/*.dll
+/src/*.dylib
+/build/
+
+# Logs & temporary files
+*.log
+*.tmp

@@ -1,7 +1,8 @@
 from stockfish import Stockfish
 
-# Initialize Stockfish
-stockfish = Stockfish(path="D:/stockfish/stockfish-windows-x86-64-avx2.exe")  # Update with your Stockfish path
+# Initialize Stockfis
+path="../../stockfish/stockfish-windows-x86-64-avx2.exe"
+stockfish = Stockfish(path)  # Update with your Stockfish path
 
 # Function to set the position of the board (after each move)
 def set_position(move):
