@@ -18,10 +18,11 @@ const ChessBoard = () => {
   useEffect(() => {
     const storedFEN = localStorage.getItem("currentFEN");
     if (storedFEN) {
-      game.load(storedFEN);
+      const newGame = new Chess(storedFEN);
+      setGame(newGame);
       setFen(storedFEN);
     }
-  }, [game]);
+  }, []);
 
   // Handle game over
   useEffect(() => {
@@ -29,7 +30,7 @@ const ChessBoard = () => {
       setGameOver(true);
       alert("Game Over! The game has ended.");
     }
-  }, [game]);
+  }, [game, fen]);
 
   // Save player and bot colors in localStorage when selected
   useEffect(() => {
@@ -48,32 +49,18 @@ const ChessBoard = () => {
     if (color === "b") {
       try {
         const data = await makeMove("");
-        const botMove = game.move(data.bot_move);
+        const newGame = new Chess();
+        const botMove = newGame.move(data.bot_move);
         if (botMove) {
-          setFen(game.fen());
-          localStorage.setItem("currentFEN", game.fen());
+          setGame(newGame);
+          setFen(newGame.fen());
+          localStorage.setItem("currentFEN", newGame.fen());
         } else {
           console.error(`Invalid bot move: ${data.bot_move}`);
         }
       } catch (error) {
         console.error("Failed to get bot move:", error);
       }
-    }
-  };
-
-  // Handle bot's move
-  const handleBotMove = async () => {
-    try {
-      const data = await makeMove("");
-      const botMove = game.move(data.bot_move);
-      if (botMove) {
-        setFen(game.fen());
-        localStorage.setItem("currentFEN", game.fen());
-      } else {
-        console.error(`Invalid bot move: ${data.bot_move}`);
-      }
-    } catch (error) {
-      console.error("Failed to get bot move:", error);
     }
   };
 
@@ -89,7 +76,9 @@ const ChessBoard = () => {
       return false;
     }
 
-    const move = game.move({
+    // Create a new game instance to avoid mutation issues
+    const newGame = new Chess(game.fen());
+    const move = newGame.move({
       from: sourceSquare,
       to: targetSquare,
       promotion: "q",
@@ -100,29 +89,28 @@ const ChessBoard = () => {
       return false;
     }
 
-    setFen(game.fen());
-    localStorage.setItem("currentFEN", game.fen());
+    setGame(newGame);
+    setFen(newGame.fen());
+    localStorage.setItem("currentFEN", newGame.fen());
 
     try {
       const lanMove = `${move.from}${move.to}${move.promotion || ""}`;
       const data = await makeMove(lanMove);
       console.log("Bot's move:", data.bot_move);
 
-      const botMove = game.move(data.bot_move);
+      // Create another new game instance for the bot's move
+      const botMoveGame = new Chess(newGame.fen());
+      const botMove = botMoveGame.move(data.bot_move);
       if (botMove) {
-        setFen(game.fen());
-        localStorage.setItem("currentFEN", game.fen());
+        setGame(botMoveGame);
+        setFen(botMoveGame.fen());
+        localStorage.setItem("currentFEN", botMoveGame.fen());
       } else {
         console.error(`Invalid bot move: ${data.bot_move}`);
       }
     } catch (error) {
       console.error("Failed to make a move:", error);
       alert("An error occurred. Please try again.");
-    }
-
-    if (game.isGameOver()) {
-      setGameOver(true);
-      alert("Game Over! The game has ended.");
     }
 
     return true;
