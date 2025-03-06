@@ -3,8 +3,8 @@ import { Chess } from "chess.js";
 import { makeMove, resetGame } from "../api/api";
 import ColorSelection from "./ColorSelection";
 import ChessGame from "./ChessGame";
-import "tailwindcss/tailwind.css"; // Ensure you have Tailwind CSS installed and configured
-import "./chessboard.css"; // Adjust the path based on your project structure
+import "tailwindcss/tailwind.css";
+import "./chessboard.css";
 
 const ChessBoard = () => {
   const [game, setGame] = useState(new Chess());
