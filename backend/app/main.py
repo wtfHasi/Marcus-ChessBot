@@ -57,29 +57,35 @@ async def setup_game(request: GameSetupRequest):
 
 class MoveRequest(BaseModel):
     move: str
+    user_plays_white: bool = True  # Default to True for backward compatibility
 
 @app.post("/make_move/")
 async def make_move(request: MoveRequest):
     try:
         user_move = request.move
-        print(f"Received move: {user_move}")
+        user_plays_white = request.user_plays_white
+        print(f"Received move: {user_move} from {'white' if user_plays_white else 'black'} player")
         
         # Check if move is legal
         if not is_move_legal(user_move):
             print(f"Move {user_move} rejected as illegal")
             return {"status": "error", "message": "Illegal move"}
         
-        # Make the move
+        # Make the user's move
         success = set_position(user_move)
         if not success:
             return {"status": "error", "message": "Failed to make move"}
         
+        # Get current FEN after user's move
+        user_move_fen = stockfish.get_fen_position()
+        print(f"Position after user move: {user_move_fen}")
+        
         # Check if game is over after user move
-        if is_game_over():  # Using imported function instead of method
+        if is_game_over():
             return {
                 "status": "success",
                 "game_status": "game_over",
-                "fen": stockfish.get_fen_position(),
+                "fen": user_move_fen,
                 "message": "Game over after your move"
             }
         
@@ -88,12 +94,12 @@ async def make_move(request: MoveRequest):
         if not bot_move:
             return {"status": "error", "message": "Failed to calculate bot move"}
         
-        # Get game status
-        game_status = "game_over" if is_game_over() else "ongoing"  # Using imported function
+        # Get game status after bot's move
+        game_status = "game_over" if is_game_over() else "ongoing"
         
-        # Get current FEN
+        # Get current FEN after bot's move
         current_fen = stockfish.get_fen_position()
-        print(f"Returning FEN: {current_fen}")
+        print(f"Returning FEN after bot move: {current_fen}")
         
         return {
             "status": "success",
