@@ -24,8 +24,8 @@ export default function GameStatus() {
       statusColor = 'text-orange-600 font-bold';
       break;
     case 'checkmate':
-      statusText = isPlayerTurn ? 'Checkmate! You lost.' : 'Checkmate! You won!';
-      statusColor = isPlayerTurn ? 'text-red-600 font-bold' : 'text-green-600 font-bold';
+        statusText = !isPlayerTurn ? 'Checkmate! You lost.' : 'Checkmate! You won!';
+        statusColor = !isPlayerTurn ? 'text-red-600 font-bold' : 'text-green-600 font-bold';
       break;
     case 'stalemate':
       statusText = 'Stalemate! Game ends in a draw.';
