@@ -23,7 +23,6 @@ class GameSetupRequest(BaseModel):
 @app.post("/setup_game/")
 async def setup_game(request: GameSetupRequest):
     try:
-        # Reset to starting position
         stockfish.set_position([])  
         user_color = "white" if request.user_plays_white else "black"
         
@@ -32,16 +31,12 @@ async def setup_game(request: GameSetupRequest):
         computer_fen = None
         
         if not request.user_plays_white:
-            print("User is playing as black, computer makes first move")
             first_move = get_best_move()
             if not first_move:
                 return {"status": "error", "message": "Failed to calculate computer's first move"}
             
-            # The get_best_move already updates the position, so get the resulting FEN
             computer_fen = stockfish.get_fen_position()
-            print(f"Computer's first move: {first_move}, resulting FEN: {computer_fen}")
         else:
-            print("User is playing as white, no computer move yet")
             computer_fen = stockfish.get_fen_position()
             
         return {
@@ -57,30 +52,20 @@ async def setup_game(request: GameSetupRequest):
 
 class MoveRequest(BaseModel):
     move: str
-    user_plays_white: bool = True  # Default to True for backward compatibility
+    user_plays_white: bool = True 
 
 @app.post("/make_move/")
 async def make_move(request: MoveRequest):
     try:
         user_move = request.move
-        user_plays_white = request.user_plays_white
-        print(f"Received move: {user_move} from {'white' if user_plays_white else 'black'} player")
-        
-        # Check if move is legal
+        user_plays_white = request.user_plays_white 
         if not is_move_legal(user_move):
-            print(f"Move {user_move} rejected as illegal")
             return {"status": "error", "message": "Illegal move"}
-        
-        # Make the user's move
         success = set_position(user_move)
         if not success:
             return {"status": "error", "message": "Failed to make move"}
         
-        # Get current FEN after user's move
         user_move_fen = stockfish.get_fen_position()
-        print(f"Position after user move: {user_move_fen}")
-        
-        # Check if game is over after user move
         if is_game_over():
             return {
                 "status": "success",
@@ -93,14 +78,8 @@ async def make_move(request: MoveRequest):
         bot_move = get_best_move()
         if not bot_move:
             return {"status": "error", "message": "Failed to calculate bot move"}
-        
-        # Get game status after bot's move
         game_status = "game_over" if is_game_over() else "ongoing"
-        
-        # Get current FEN after bot's move
-        current_fen = stockfish.get_fen_position()
-        print(f"Returning FEN after bot move: {current_fen}")
-        
+        current_fen = stockfish.get_fen_position()    
         return {
             "status": "success",
             "game_status": game_status,
@@ -114,10 +93,8 @@ async def make_move(request: MoveRequest):
 @app.post("/reset_game/")
 async def reset_game():
     try:
-        # Reset Stockfish to the starting position
         stockfish.set_position([])
         starting_fen = stockfish.get_fen_position()
-        print(f"Stockfish reset to starting position: {starting_fen}")
         return {"status": "success", "starting_fen": starting_fen}
     except Exception as e:
         print(f"Error resetting Stockfish: {e}")
