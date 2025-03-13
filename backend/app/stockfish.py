@@ -25,7 +25,6 @@ def get_best_move():
     if best_move:
         try:
             stockfish.make_moves_from_current_position([best_move])
-            updated_fen = stockfish.get_fen_position()
             return best_move
         except Exception as e:
             print(f"Error making bot move: {e}")
@@ -84,9 +83,9 @@ def set_difficulty(elo=None, skill_level=None, depth=None, time=None):
 
 def get_difficulty_presets():
     return {
-        "beginner": {"elo": 800, "skill_level": 3, "depth": 5, "time":2000},
-        "casual": {"elo": 1200, "skill_level": 8, "depth": 8},
-        "intermediate": {"elo": 1600, "skill_level": 12, "depth": 12},
-        "advanced": {"elo": 2000, "skill_level": 16, "depth": 15},
-        "expert": {"elo": 2500, "skill_level": 20, "depth": 18}
+        "beginner": {"elo": 800, "skill_level": 3, "depth": 5, "time": 1000},
+        "casual": {"elo": 1200, "skill_level": 8, "depth": 8, "time": 1000},
+        "intermediate": {"elo": 1600, "skill_level": 12, "depth": 12, "time": 1000},
+        "advanced": {"elo": 2000, "skill_level": 16, "depth": 15, "time": 1000},
+        "expert": {"elo": 2500, "skill_level": 20, "depth": 18, "time": 1000}
     }

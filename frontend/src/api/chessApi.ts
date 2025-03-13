@@ -22,7 +22,7 @@ export interface GameSetupResponse {
 
 export interface MoveRequest {
   move: string;
-  user_plays_white: boolean; // Added to track the user's color
+  user_plays_white: boolean;
 }
 
 export interface MoveResponse {
@@ -30,6 +30,7 @@ export interface MoveResponse {
   game_status: string;
   bot_move: string;
   fen: string;
+  recommended_delay?: number;
 }
 
 export const setupGame = async (request: GameSetupRequest): Promise<GameSetupResponse> => {
@@ -38,7 +39,6 @@ export const setupGame = async (request: GameSetupRequest): Promise<GameSetupRes
 };
 
 export const makeMove = async (move: string, userPlaysWhite: boolean): Promise<MoveResponse> => {
-  console.log(`API sending move: ${move} for ${userPlaysWhite ? 'white' : 'black'} player`);
   const response = await api.post('/make_move/', { 
     move, 
     user_plays_white: userPlaysWhite 
@@ -54,11 +54,11 @@ export const resetGame = async (): Promise<{ status: string; starting_fen: strin
 
 // Difficulty presets which respects the backend presets
 export const difficultyPresets = {
-  beginner: { elo: 800, skill_level: 3, depth: 5 },
-  casual: { elo: 1200, skill_level: 8, depth: 8 },
-  intermediate: { elo: 1600, skill_level: 12, depth: 12 },
-  advanced: { elo: 2000, skill_level: 16, depth: 15 },
-  expert: { elo: 2500, skill_level: 20, depth: 18 },
+  beginner: { elo: 800, skill_level: 3, depth: 5, time: 1000 },
+  casual: { elo: 1200, skill_level: 8, depth: 8, time: 1000 },
+  intermediate: { elo: 1600, skill_level: 12, depth: 12, time: 1000 },
+  advanced: { elo: 2000, skill_level: 16, depth: 15, time: 1000 },
+  expert: { elo: 2500, skill_level: 20, depth: 18, time: 1000 },
 };
 
 export const setDifficulty = async (preset: keyof typeof difficultyPresets) => {

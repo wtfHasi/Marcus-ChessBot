@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from app.stockfish import set_position, get_best_move, is_move_legal, set_difficulty, is_game_over, stockfish
+from app.stockfish import set_position, get_best_move, is_move_legal, set_difficulty, get_difficulty_presets, is_game_over, stockfish
 
 app = FastAPI()
 load_dotenv()
@@ -74,22 +74,31 @@ async def make_move(request: MoveRequest):
                 "message": "Game over after your move"
             }
         
-        # Get bot's move
+        # Get bot's move immediately (no delay here)
         bot_move = get_best_move()
         if not bot_move:
             return {"status": "error", "message": "Failed to calculate bot move"}
+        
         game_status = "game_over" if is_game_over() else "ongoing"
-        current_fen = stockfish.get_fen_position()    
+        current_fen = stockfish.get_fen_position()
+        
+        # Adds a flag to indicate that the frontend should delay showing the bot's move
+        # We calculate the recommended delay based on difficulty
+        difficulty_presets = get_difficulty_presets()
+        current_difficulty = difficulty_presets.get(os.getenv("CURRENT_DIFFICULTY", "intermediate"), 
+                                                 difficulty_presets["intermediate"])
+        recommended_delay = current_difficulty.get("time", 1000)  # In milliseconds
+        
         return {
             "status": "success",
             "game_status": game_status,
             "bot_move": bot_move,
-            "fen": current_fen
+            "fen": current_fen,
+            "recommended_delay": recommended_delay
         }
     except Exception as e:
         print(f"Error processing move: {e}")
         return {"status": "error", "message": str(e)}
-
 @app.post("/reset_game/")
 async def reset_game():
     try:
