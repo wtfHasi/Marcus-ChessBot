@@ -22,6 +22,7 @@ export interface GameSetupResponse {
 
 export interface MoveRequest {
   move: string;
+  user_plays_white: boolean; // Added to track the user's color
 }
 
 export interface MoveResponse {
@@ -36,9 +37,12 @@ export const setupGame = async (request: GameSetupRequest): Promise<GameSetupRes
   return response.data;
 };
 
-export const makeMove = async (move: string): Promise<MoveResponse> => {
-  console.log(`API sending move: ${move}`);
-  const response = await api.post('/make_move/', { move });
+export const makeMove = async (move: string, userPlaysWhite: boolean): Promise<MoveResponse> => {
+  console.log(`API sending move: ${move} for ${userPlaysWhite ? 'white' : 'black'} player`);
+  const response = await api.post('/make_move/', { 
+    move, 
+    user_plays_white: userPlaysWhite 
+  });
   console.log('API response:', response.data);
   return response.data;
 };

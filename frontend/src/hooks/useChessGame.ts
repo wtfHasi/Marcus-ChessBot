@@ -41,14 +41,15 @@ export const useChessGame = create<ChessGameStore>((set, get) => ({
           playerColor: response.user_color as 'white' | 'black',
           status: 'playing',
           history: [],
-          isPlayerTurn: playAsWhite,
+          isPlayerTurn: playAsWhite, // If playing as black, initially false
           lastMove: response.computer_first_move || null,
         });
         
-        // If computer made a first move, update the history
+        // If computer made a first move, update the history and set player turn to true
         if (response.computer_first_move) {
           set(state => ({ 
-            history: [...state.history, response.computer_first_move!]
+            history: [...state.history, response.computer_first_move!],
+            isPlayerTurn: true // Enable player's turn after computer's first move
           }));
         }
       }
@@ -87,15 +88,16 @@ export const useChessGame = create<ChessGameStore>((set, get) => ({
   makePlayerMove: async (move: Move) => {
     try {
       const { playerColor, history, isPlayerTurn } = get();
+      const isPlayerWhite = playerColor === 'white';
   
       if (!isPlayerTurn) {
         console.warn(`Not your turn! Player is playing as ${playerColor}`);
         return;
       }
   
-      console.log(`Sending move to backend: ${move}`);
+      console.log(`Sending move to backend: ${move}, player is ${playerColor}`);
   
-      const response = await makeMove(move);
+      const response = await makeMove(move, isPlayerWhite);
   
       if (response.status === 'success') {
         console.log(`Move succeeded. New FEN: ${response.fen}`);
@@ -106,7 +108,7 @@ export const useChessGame = create<ChessGameStore>((set, get) => ({
         set({
           fen: response.fen,
           history: updatedHistory,
-          isPlayerTurn: false,
+          isPlayerTurn: false, // Wait for computer's response
           lastMove: move,
         });
   
@@ -128,7 +130,7 @@ export const useChessGame = create<ChessGameStore>((set, get) => ({
             set({
               fen: response.fen,
               history: [...updatedHistory, response.bot_move],
-              isPlayerTurn: true,
+              isPlayerTurn: true, // Now it's player's turn again
               lastMove: response.bot_move,
             });
   
