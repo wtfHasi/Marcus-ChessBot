@@ -28,7 +28,7 @@ export default function Controls() {
               disabled={status === 'playing'}
               className="h-4 w-4"
             />
-            <span>White (First move)</span>
+            <span>White</span>
           </label>
           <label className="flex items-center space-x-2">
             <input
@@ -40,7 +40,7 @@ export default function Controls() {
               disabled={status === 'playing'}
               className="h-4 w-4"
             />
-            <span>Black (Second move)</span>
+            <span>Black</span>
           </label>
         </div>
       </div>

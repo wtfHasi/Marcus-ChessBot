@@ -10,12 +10,13 @@ export default function Board() {
     isPlayerTurn, 
     makePlayerMove, 
     status,
-    lastMove 
+    lastMove,
+    setFen
   } = useChessGame();
   
   const [chess, setChess] = useState(new Chess(fen));
   
-  // Update chess instance when FEN changes
+  // Update chess instance when FEN changes from store
   useEffect(() => {
     try {
       setChess(new Chess(fen));
@@ -29,32 +30,25 @@ export default function Board() {
     if (!isPlayerTurn || status !== 'playing') {
       return false;
     }
-    
-    // Check if the move is valid according to chess.js
     try {
       const moveObj = {
         from: sourceSquare,
         to: targetSquare,
         promotion: 'q', // Always promote to queen for simplicity
       };
-      
       const result = chess.move(moveObj);
       
       if (result) {
-        // Create move in UCI format (e2e4, g1f3, etc.)
         const uciMove = sourceSquare + targetSquare;
-        
-        // Log the move for debugging
-        console.log(`Attempting move: ${uciMove}`);
-        
-        // Send move to the backend
+        // Update the FEN in the store immediately for visual feedback
+        const newFen = chess.fen();
+        setFen(newFen);
         makePlayerMove(uciMove);
         return true;
       }
     } catch (e) {
       console.error('Invalid move:', e);
-    }
-    
+    }  
     return false;
   };
 
@@ -67,15 +61,15 @@ export default function Board() {
     const from = lastMove.substring(0, 2);
     const to = lastMove.substring(2, 4);
 
-  customSquareStyles[from] = { backgroundColor: 'rgba(255, 255, 0, 0.4)' };
-  customSquareStyles[to] = { backgroundColor: 'rgba(255, 255, 0, 0.4)' };
+    customSquareStyles[from] = { backgroundColor: 'rgba(255, 255, 0, 0.4)' };
+    customSquareStyles[to] = { backgroundColor: 'rgba(255, 255, 0, 0.4)' };
   }
 
   return (
     <div className="w-full max-w-lg mx-auto">
       <Chessboard
         id="main-board"
-        position={fen}
+        position={chess.fen()}
         onPieceDrop={onDrop}
         boardOrientation={boardOrientation}
         customSquareStyles={customSquareStyles}
@@ -85,6 +79,11 @@ export default function Board() {
       {status !== 'playing' && status !== 'setup' && (
         <div className="mt-4 p-2 bg-gray-200 text-center rounded">
           Game status: {status.toUpperCase()}
+        </div>
+      )}
+      {!isPlayerTurn && status === 'playing' && (
+        <div className="mt-4 p-2 bg-yellow-100 text-center rounded">
+          Computer is thinking...
         </div>
       )}
     </div>

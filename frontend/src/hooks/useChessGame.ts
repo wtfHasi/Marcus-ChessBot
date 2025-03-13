@@ -3,21 +3,24 @@ import { GameState, Difficulty, Move } from '../types/chess';
 import { setupGame, makeMove, resetGame, setDifficulty } from '../api/chessApi';
 
 interface ChessGameStore extends GameState {
-  // Setup actions
   startNewGame: (playAsWhite: boolean) => Promise<void>;
   resetCurrentGame: () => Promise<void>;
   changeDifficulty: (difficulty: Difficulty) => Promise<void>;
-  
-  // Game actions
   makePlayerMove: (move: Move) => Promise<void>;
   
-  // State setters
   setFen: (fen: string) => void;
   setStatus: (status: GameState['status']) => void;
   setIsPlayerTurn: (isPlayerTurn: boolean) => void;
 }
 
 const INITIAL_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+
+// Simple function to add a small random variation to make moves feel natural
+const getRandomDelay = (baseDelay: number): number => {
+  // Add ±20% randomness
+  const randomFactor = 0.8 + Math.random() * 0.4; // Between 0.8 and 1.2
+  return Math.round(baseDelay * randomFactor);
+};
 
 export const useChessGame = create<ChessGameStore>((set, get) => ({
   // Initial state
@@ -45,12 +48,16 @@ export const useChessGame = create<ChessGameStore>((set, get) => ({
           lastMove: response.computer_first_move || null,
         });
         
-        // If computer made a first move, update the history and set player turn to true
+        // If computer made a first move, add a small delay before updating
         if (response.computer_first_move) {
-          set(state => ({ 
-            history: [...state.history, response.computer_first_move!],
-            isPlayerTurn: true // Enable player's turn after computer's first move
-          }));
+          const delay = getRandomDelay(1000);
+          
+          setTimeout(() => {
+            set(state => ({ 
+              history: [...state.history, response.computer_first_move!],
+              isPlayerTurn: true // Enable player's turn after computer's first move
+            }));
+          }, delay);
         }
       }
     } catch (error) {
@@ -95,24 +102,18 @@ export const useChessGame = create<ChessGameStore>((set, get) => ({
         return;
       }
   
-      console.log(`Sending move to backend: ${move}, player is ${playerColor}`);
-  
       const response = await makeMove(move, isPlayerWhite);
   
       if (response.status === 'success') {
-        console.log(`Move succeeded. New FEN: ${response.fen}`);
-        
         // Update the game state with the player's move
         const updatedHistory = [...history, move];
         
         set({
           fen: response.fen,
           history: updatedHistory,
-          isPlayerTurn: false, // Wait for computer's response
+          isPlayerTurn: false, 
           lastMove: move,
         });
-  
-        console.log(`[${playerColor}] Player moved: ${move}`);
   
         // Check if the game is over
         if (response.game_status === 'game_over') {
@@ -121,28 +122,24 @@ export const useChessGame = create<ChessGameStore>((set, get) => ({
           return;
         }
   
-        // Process the bot's response move
+        // Process the bot's response move with a consistent but slightly random delay
         if (response.bot_move) {
-          console.log(`Bot responding with: ${response.bot_move}`);
+          // Use the recommended delay from the backend, or fall back to our default with randomness
+          const baseDelay = response.recommended_delay || 1000;
+          const delay = getRandomDelay(baseDelay);
           
-          // Short delay for visual feedback
           setTimeout(() => {
             set({
               fen: response.fen,
               history: [...updatedHistory, response.bot_move],
-              isPlayerTurn: true, // Now it's player's turn again
+              isPlayerTurn: true,
               lastMove: response.bot_move,
             });
-  
-            console.log(`[Opponent] Bot moved: ${response.bot_move}`);
-          }, 300);
+          }, delay);
         } else {
           set({ isPlayerTurn: true });
         }
       } else {
-        // Handle the error from the backend
-        console.error('Move failed:', response);
-        
         // If the move was rejected, allow the player to try again
         set({ isPlayerTurn: true });
       }
