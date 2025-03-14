@@ -3,11 +3,11 @@ import { useChessGame } from '../hooks/useChessGame';
 import { Difficulty } from '../types/chess';
 
 const difficultyLabels: Record<Difficulty, string> = {
-  beginner: '👶 Beginner (ELO: 800)',
-  casual: '😊 Casual (ELO: 1200)',
-  intermediate: '🧠 Intermediate (ELO: 1600)',
-  advanced: '🏆 Advanced (ELO: 2000)',
-  expert: '🤖 Expert (ELO: 2500)'
+  beginner: 'Beginner (ELO: 800)',
+  casual: 'Casual (ELO: 1200)',
+  intermediate: 'Intermediate (ELO: 1600)',
+  advanced: 'Advanced (ELO: 2000)',
+  expert: 'Expert (ELO: 2500)'
 };
 
 export default function DifficultySelector() {
